@@ -1,0 +1,84 @@
+{
+  "version": 6,
+  "cmakeMinimumRequired": {
+    "major": 3,
+    "minor": 28,
+    "patch": 0
+  },
+  "configurePresets": [
+    {
+      "name": "Base",
+      "description": "Common settings for all builds",
+      "hidden": true,
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build/${presetName}",
+      "cacheVariables": {
+        "BUILD_APP": "ON",
+        "BUILD_TESTS": "OFF"
+      }
+    },
+    {
+      "name": "Test-Base",
+      "description": "Common settings for all test builds",
+      "hidden": true,
+      "cacheVariables": {
+        "BUILD_APP": "OFF",
+        "BUILD_TESTS": "ON"
+      }
+    },
+    {
+      "name": "Release",
+      "description": "Release build",
+      "inherits": [
+        "Base"
+      ],
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release"
+      }
+    },
+    {
+      "name": "Debug",
+      "description": "Debug build",
+      "inherits": [
+        "Base"
+      ],
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug"
+      }
+    },
+    {
+      "name": "RelWithDebInfo",
+      "description": "RelWithDebInfo build",
+      "inherits": [
+        "Base"
+      ],
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "RelWithDebInfo"
+      }
+    },
+    {
+      "name": "Test-Release",
+      "description": "Release test build",
+      "inherits": [
+        "Test-Base",
+        "Release"
+      ]
+    },
+    {
+      "name": "Test-Debug",
+      "description": "Debug test build",
+      "inherits": [
+        "Test-Base",
+        "Debug"
+      ]
+    },
+    {
+      "name": "Test-RelWithDebInfo",
+      "description": "RelWithDebInfo test build",
+      "inherits": [
+        "Test-Base",
+        "RelWithDebInfo"
+      ]
+    }
+  ]
+}
