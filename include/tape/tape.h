@@ -1,8 +1,24 @@
-//
-// Created by kirill on 5/10/26.
-//
+#pragma once
+#include <cstdint>
+#include <optional>
 
-#ifndef YADRO_TEST_TATLIN_ITAPE_H
-#define YADRO_TEST_TATLIN_ITAPE_H
+namespace tape {
 
-#endif //YADRO_TEST_TATLIN_ITAPE_H
+class ITape {
+  public:
+    virtual std::optional<std::int32_t> read() const = 0;
+
+    virtual bool write(std::int32_t value) = 0;
+
+    virtual void move_left() = 0;
+
+    virtual void move_right() = 0;
+
+    virtual std::size_t size() const noexcept = 0;
+
+    virtual std::size_t offset() const noexcept = 0;
+
+    virtual ~ITape() = default;
+};
+
+} // namespace tape
