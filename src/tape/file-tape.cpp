@@ -42,7 +42,7 @@ std::int32_t FileTape::read() {
     std::int32_t read = 0;
     file_.read(reinterpret_cast<char*>(&read), sizeof(read));
     if (file_.fail()) {
-        throw TapeException(std::format("Could not read tape"));
+        throw TapeException("Could not read tape");
     }
 
     return read;
@@ -50,7 +50,7 @@ std::int32_t FileTape::read() {
 
 void FileTape::write(const std::int32_t value) {
     if (is_end()) {
-        throw TapeException(std::format("Could not write right bound of tape"));
+        throw TapeException("Could not write right bound of tape");
     }
 
     std::this_thread::sleep_for(config_.write_delay_);
@@ -59,7 +59,7 @@ void FileTape::write(const std::int32_t value) {
 
     file_.write(reinterpret_cast<const char*>(&value), sizeof(value));
     if (file_.fail()) {
-        throw TapeException(std::format("Could not write tape"));
+        throw TapeException("Could not write tape");
     }
 }
 
@@ -128,7 +128,7 @@ void FileTape::seek_read_position(const std::streamoff offset, std::ios_base::se
     file_.clear();
     file_.seekg(offset, seekdir);
     if (file_.fail()) {
-        throw TapeException(std::format("Could not seek read position"));
+        throw TapeException("Could not seek read position");
     }
 }
 
@@ -136,7 +136,7 @@ void FileTape::seek_write_position(const std::streamoff offset, std::ios_base::s
     file_.clear();
     file_.seekp(offset, seekdir);
     if (file_.fail()) {
-        throw TapeException(std::format("Could not seek write position"));
+        throw TapeException("Could not seek write position");
     }
 }
 
