@@ -10,7 +10,7 @@
 
 namespace tape {
 
-FileTape::FileTape(std::string_view path, Config config)
+FileTape::FileTape(std::string_view path, const Config &config)
     : file_(std::filesystem::path(path), std::ios_base::in | std::ios_base::out | std::ios_base::binary)
     , config_(config) {
     if (file_.fail()) {
@@ -20,7 +20,7 @@ FileTape::FileTape(std::string_view path, Config config)
     size_bytes_ = get_file_size(path);
 }
 
-FileTape::FileTape(std::string_view path, const std::size_t number_of_elements, Config config)
+FileTape::FileTape(std::string_view path, const std::size_t number_of_elements, const Config &config)
     : config_(config) {
     if (number_of_elements > std::numeric_limits<std::streamoff>::max() / ELEMENT_SIZE) {
         throw TapeException("Number of elements exceeded maximum possible size of tape");

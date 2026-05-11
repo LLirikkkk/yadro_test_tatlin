@@ -18,9 +18,9 @@ class FileTape : public ITape {
         std::chrono::milliseconds move_delay_;
     };
 
-    explicit FileTape(std::string_view path, Config config);
+    explicit FileTape(std::string_view path, const Config &config);
 
-    FileTape(std::string_view path, std::size_t number_of_elements, Config config);
+    FileTape(std::string_view path, std::size_t number_of_elements, const Config &config);
 
     std::int32_t read() override;
 
