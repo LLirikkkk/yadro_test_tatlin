@@ -16,7 +16,7 @@ target_sources(
         PRIVATE
         sort/tape-sorter.cpp
         tape/file-tape.cpp
-        utils/temp-file-manager.cpp
+        utils/temp-dir-guard.cpp
         exceptions/exceptions.cpp
 
         PUBLIC
@@ -26,6 +26,6 @@ target_sources(
         ${PROJECT_SOURCE_DIR}/include/sort/tape-sorter.h
         ${PROJECT_SOURCE_DIR}/include/tape/tape.h
         ${PROJECT_SOURCE_DIR}/include/tape/file-tape.h
-        ${PROJECT_SOURCE_DIR}/include/utils/temp-file-manager.h
+        ${PROJECT_SOURCE_DIR}/include/utils/temp-dir-guard.h
         ${PROJECT_SOURCE_DIR}/include/exceptions/exceptions.h
 )
