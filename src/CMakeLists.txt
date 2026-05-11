@@ -16,6 +16,7 @@ target_sources(
         PRIVATE
         sort/tape-sorter.cpp
         tape/file-tape.cpp
+        tape/tape.cpp
         utils/temp-dir-guard.cpp
         exceptions/exceptions.cpp
 

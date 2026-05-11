@@ -3,6 +3,7 @@
 #include "tape.h"
 
 #include <fstream>
+#include <string_view>
 
 namespace tape {
 

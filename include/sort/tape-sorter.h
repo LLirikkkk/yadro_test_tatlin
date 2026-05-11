@@ -5,6 +5,7 @@
 
 #include <cstddef>
 #include <filesystem>
+#include <span>
 #include <vector>
 
 namespace tape {
@@ -12,7 +13,7 @@ namespace tape {
 class TapeSorter {
   private:
     static constexpr std::size_t ELEMENT_SIZE = sizeof(std::int32_t);
-    static std::size_t UNIQUE_INDEX_IN_TMP_DIR;
+    inline static std::size_t UNIQUE_INDEX_IN_TMP_DIR = 0;
 
   public:
     struct Config {
