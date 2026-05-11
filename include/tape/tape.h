@@ -6,7 +6,7 @@ namespace tape {
 
 class ITape {
   public:
-    virtual std::int32_t read() const = 0;
+    virtual std::int32_t read() = 0;
 
     virtual void write(std::int32_t value) = 0;
 
