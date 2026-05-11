@@ -7,10 +7,13 @@
 namespace tape {
 
 class FileTape : public ITape {
-  public:
-    explicit FileTape(const std::string& file);
+  private:
+    static constexpr std::size_t ELEMENT_SIZE = sizeof(std::int32_t);
 
-    std::int32_t read() const override;
+  public:
+    explicit FileTape(std::string_view path);
+
+    std::int32_t read() override;
 
     void write(std::int32_t value) override;
 
@@ -22,10 +25,11 @@ class FileTape : public ITape {
 
     bool is_end() const noexcept override;
 
-    ~FileTape() override;
+    ~FileTape() override = default;
 
   private:
-    std::size_t offset_ = 0;
+    std::streamoff offset_bytes_ = 0;
+    std::streamoff size_bytes_ = 0;
     std::fstream file_;
 };
 
