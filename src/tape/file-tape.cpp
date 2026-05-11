@@ -6,28 +6,22 @@
 #include <filesystem>
 #include <format>
 #include <limits>
+#include <thread>
 
 namespace tape {
 
-FileTape::FileTape(std::string_view path)
-    : file_(std::filesystem::path(path), std::ios_base::in | std::ios_base::out | std::ios_base::binary) {
+FileTape::FileTape(std::string_view path, Config config)
+    : file_(std::filesystem::path(path), std::ios_base::in | std::ios_base::out | std::ios_base::binary)
+    , config_(config) {
     if (file_.fail()) {
         throw TapeException(std::format("Could not open file: {}", path));
     }
 
-    seek_read_position(0, std::ios_base::end);
-
-    size_bytes_ = file_.tellg();
-    if (size_bytes_ == -1) {
-        throw TapeException(std::format("Could not read file: {}", path));
-    }
-
-    if (size_bytes_ % ELEMENT_SIZE != 0) {
-        throw TapeException(std::format("Invalid data in file: {}", path));
-    }
+    size_bytes_ = get_file_size(path);
 }
 
-FileTape::FileTape(std::string_view path, const std::size_t number_of_elements) {
+FileTape::FileTape(std::string_view path, const std::size_t number_of_elements, Config config)
+    : config_(config) {
     if (number_of_elements > std::numeric_limits<std::streamoff>::max() / ELEMENT_SIZE) {
         throw TapeException("Number of elements exceeded maximum possible size of tape");
     }
@@ -40,6 +34,8 @@ std::int32_t FileTape::read() {
     if (is_end()) {
         throw TapeException("Could not read right bound of tape");
     }
+
+    std::this_thread::sleep_for(config_.read_delay_);
 
     seek_read_position(offset_bytes_, std::ios_base::beg);
 
@@ -57,6 +53,8 @@ void FileTape::write(const std::int32_t value) {
         throw TapeException(std::format("Could not write right bound of tape"));
     }
 
+    std::this_thread::sleep_for(config_.write_delay_);
+
     seek_write_position(offset_bytes_, std::ios_base::beg);
 
     file_.write(reinterpret_cast<const char*>(&value), sizeof(value));
@@ -70,6 +68,8 @@ void FileTape::move_left() {
         throw TapeException("Could not move head of tape left, because left bound is reached");
     }
 
+    std::this_thread::sleep_for(config_.move_delay_);
+
     offset_bytes_ -= ELEMENT_SIZE;
 }
 
@@ -77,6 +77,8 @@ void FileTape::move_right() {
     if (is_end()) {
         throw TapeException("Could not move head of tape right, because right bound is reached");
     }
+
+    std::this_thread::sleep_for(config_.move_delay_);
 
     offset_bytes_ += ELEMENT_SIZE;
 }
@@ -87,6 +89,21 @@ bool FileTape::is_begin() const noexcept {
 
 bool FileTape::is_end() const noexcept {
     return offset_bytes_ == size_bytes_;
+}
+
+std::streamoff FileTape::get_file_size(std::string_view path) {
+    seek_read_position(0, std::ios_base::end);
+
+    const std::streamoff size_bytes = file_.tellg();
+    if (size_bytes == -1) {
+        throw TapeException(std::format("Could not read file: {}", path));
+    }
+
+    if (size_bytes % ELEMENT_SIZE != 0) {
+        throw TapeException(std::format("Invalid data in file: {}", path));
+    }
+
+    return size_bytes;
 }
 
 void FileTape::seek_read_position(const std::streamoff offset, std::ios_base::seekdir seekdir) {

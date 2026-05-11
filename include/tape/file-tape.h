@@ -2,6 +2,7 @@
 
 #include "tape.h"
 
+#include <chrono>
 #include <fstream>
 
 namespace tape {
@@ -11,9 +12,15 @@ class FileTape : public ITape {
     static constexpr std::streamoff ELEMENT_SIZE = sizeof(std::int32_t);
 
   public:
-    explicit FileTape(std::string_view path);
+    struct Config {
+        std::chrono::milliseconds read_delay_;
+        std::chrono::milliseconds write_delay_;
+        std::chrono::milliseconds move_delay_;
+    };
 
-    FileTape(std::string_view path, std::size_t number_of_elements);
+    explicit FileTape(std::string_view path, Config config);
+
+    FileTape(std::string_view path, std::size_t number_of_elements, Config config);
 
     std::int32_t read() override;
 
@@ -33,6 +40,9 @@ class FileTape : public ITape {
     std::streamoff offset_bytes_ = 0;
     std::streamoff size_bytes_ = 0;
     std::fstream file_;
+    Config config_;
+
+    std::streamoff get_file_size(std::string_view path);
 
     void seek_read_position(std::streamoff offset, std::ios_base::seekdir seekdir);
 
