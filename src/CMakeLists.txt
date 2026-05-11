@@ -17,6 +17,7 @@ target_sources(
         sort/tape-sorter.cpp
         tape/file-tape.cpp
         utils/temp-file-manager.cpp
+        exceptions/exceptions.cpp
 
         PUBLIC
         FILE_SET HEADERS
@@ -26,4 +27,5 @@ target_sources(
         ${PROJECT_SOURCE_DIR}/include/tape/tape.h
         ${PROJECT_SOURCE_DIR}/include/tape/file-tape.h
         ${PROJECT_SOURCE_DIR}/include/utils/temp-file-manager.h
+        ${PROJECT_SOURCE_DIR}/include/exceptions/exceptions.h
 )
