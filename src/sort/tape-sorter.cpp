@@ -15,7 +15,7 @@ namespace tape {
 TapeSorter::TapeSorter(const Config& config) noexcept
     : config_(config) {}
 
-void TapeSorter::sort(ITape& input, ITape& output) const {
+void TapeSorter::sort(ITape& input, ITape& output) {
     if (input.size() != output.size()) {
         throw TapeException("Sizes of input tape and output tape are not equal");
     }
@@ -39,44 +39,47 @@ void TapeSorter::sort(ITape& input, ITape& output) const {
     merge_sorted_temp_tapes(temp_tapes, output);
 }
 
-std::vector<FileTape> TapeSorter::get_sorted_temp_tapes(ITape& input, const std::size_t elements_in_block) {
-    std::vector<FileTape> temp_tapes;
-    temp_tapes.reserve((input.size() + elements_in_block - 1) / elements_in_block);
-
+std::vector<TapeSorter::TapeInfo> TapeSorter::get_sorted_temp_tapes(ITape& input, const std::size_t elements_in_block) {
+    std::vector<TapeInfo> temp_tapes_info;
+    temp_tapes_info.reserve((input.size() + elements_in_block - 1) / elements_in_block);
     while (!input.is_end()) {
         auto block = read_tape(input, elements_in_block);
         std::ranges::sort(block.begin(), block.end(), std::less{});
 
-        temp_tapes.emplace_back(get_unique_path_in_tmp_dir().string(), block.size(), input.get_config());
+        auto path = get_unique_path_in_tmp_dir();
+        FileTape temp_tape(path.string(), block.size(), input.get_config());
 
-        write_tape(temp_tapes.back(), block);
-        temp_tapes.back().rewind_to_begin();
+        write_tape(temp_tape, block);
+        temp_tapes_info.emplace_back(path, input.get_config());
     }
 
-    return temp_tapes;
+    return temp_tapes_info;
 }
 
-void TapeSorter::merge_sorted_temp_tapes(std::vector<FileTape>& temp_tapes, ITape& output) const {
-    while (temp_tapes.size() > 1) {
-        std::size_t merge_ways = std::min(temp_tapes.size(), get_elements_in_block());
-        auto merged_temp_tape = merge_sorted_temp_tapes_impl(std::span(temp_tapes.begin(), merge_ways));
-        auto removed_left_bound_it = temp_tapes.begin();
-        auto removed_right_bound_it = temp_tapes.begin();
+void TapeSorter::merge_sorted_temp_tapes(std::vector<TapeInfo>& temp_tapes_info, ITape& output) {
+    while (temp_tapes_info.size() > 1) {
+        std::size_t merge_ways = std::min(temp_tapes_info.size(), get_elements_in_block());
+        auto merged_temp_tape = merge_sorted_temp_tapes_impl(std::span(temp_tapes_info.begin(), merge_ways));
+        auto removed_left_bound_it = temp_tapes_info.begin();
+        auto removed_right_bound_it = temp_tapes_info.begin();
         std::advance(removed_right_bound_it, merge_ways);
-        temp_tapes.erase(removed_left_bound_it, removed_right_bound_it);
-        temp_tapes.push_back(std::move(merged_temp_tape));
+        temp_tapes_info.erase(removed_left_bound_it, removed_right_bound_it);
+        temp_tapes_info.push_back(std::move(merged_temp_tape));
     }
 
-    while (!temp_tapes.front().is_end()) {
-        output.write(temp_tapes.front().read());
+    FileTape result(temp_tapes_info.front().path_.string(), temp_tapes_info.front().config_);
+    while (!result.is_end()) {
+        output.write(result.read());
         output.move_right();
-        temp_tapes.front().move_right();
+        result.move_right();
     }
 }
 
-FileTape TapeSorter::merge_sorted_temp_tapes_impl(std::span<FileTape> temp_tapes) {
+TapeSorter::TapeInfo TapeSorter::merge_sorted_temp_tapes_impl(std::span<TapeInfo> temp_tapes_info) {
     using TapeValue = std::int32_t;
     using TapeIndex = std::size_t;
+
+    auto temp_tapes = get_tapes_from_tapes_info(temp_tapes_info);
 
     std::priority_queue<std::pair<TapeValue, TapeIndex>, std::vector<std::pair<TapeValue, TapeIndex>>, std::greater<>>
         pq;
@@ -90,7 +93,8 @@ FileTape TapeSorter::merge_sorted_temp_tapes_impl(std::span<FileTape> temp_tapes
         merged_size += temp_tapes[i].size();
     }
 
-    FileTape merged_temp_tape(get_unique_path_in_tmp_dir().string(), merged_size, temp_tapes.front().get_config());
+    auto merged_temp_tape_path = get_unique_path_in_tmp_dir();
+    FileTape merged_temp_tape(merged_temp_tape_path.string(), merged_size, temp_tapes.front().get_config());
     while (!pq.empty()) {
         auto [tape_value, tape_index] = pq.top();
         pq.pop();
@@ -105,7 +109,17 @@ FileTape TapeSorter::merge_sorted_temp_tapes_impl(std::span<FileTape> temp_tapes
 
     merged_temp_tape.rewind_to_begin();
 
-    return merged_temp_tape;
+    return {.path_ = merged_temp_tape_path, .config_ = merged_temp_tape.get_config()};
+}
+
+std::vector<FileTape> TapeSorter::get_tapes_from_tapes_info(std::span<TapeInfo> tapes) {
+    std::vector<FileTape> temp_tapes;
+    temp_tapes.reserve(tapes.size());
+    for (auto& [path, config] : tapes) {
+        temp_tapes.emplace_back(path.string(), config);
+    }
+
+    return temp_tapes;
 }
 
 std::vector<std::int32_t> TapeSorter::read_tape(ITape& input, const std::size_t n) {
@@ -133,11 +147,11 @@ std::size_t TapeSorter::get_elements_in_block() const noexcept {
 }
 
 std::size_t TapeSorter::get_unique_index_in_tmp_dir() noexcept {
-    return UNIQUE_INDEX_IN_TMP_DIR++;
+    return unique_index_in_tmp_dir_++;
 }
 
 void TapeSorter::reset_unique_index_in_tmp_dir() noexcept {
-    UNIQUE_INDEX_IN_TMP_DIR = 0;
+    unique_index_in_tmp_dir_ = 0;
 }
 
 } // namespace tape

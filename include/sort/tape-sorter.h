@@ -13,7 +13,11 @@ namespace tape {
 class TapeSorter {
   private:
     static constexpr std::size_t ELEMENT_SIZE = sizeof(std::int32_t);
-    inline static std::size_t UNIQUE_INDEX_IN_TMP_DIR = 0;
+
+    struct TapeInfo {
+        std::filesystem::path path_;
+        ITape::Config config_;
+    };
 
   public:
     struct Config {
@@ -22,14 +26,16 @@ class TapeSorter {
 
     explicit TapeSorter(const Config& config) noexcept;
 
-    void sort(ITape& input, ITape& output) const;
+    void sort(ITape& input, ITape& output);
 
   private:
-    static std::vector<FileTape> get_sorted_temp_tapes(ITape& input, std::size_t elements_in_block);
+    std::vector<TapeInfo> get_sorted_temp_tapes(ITape& input, std::size_t elements_in_block);
 
-    void merge_sorted_temp_tapes(std::vector<FileTape>& temp_tapes, ITape& output) const;
+    void merge_sorted_temp_tapes(std::vector<TapeInfo>& temp_tapes_info, ITape& output);
 
-    static FileTape merge_sorted_temp_tapes_impl(std::span<FileTape> temp_tapes);
+    TapeInfo merge_sorted_temp_tapes_impl(std::span<TapeInfo> temp_tapes);
+
+    static std::vector<FileTape> get_tapes_from_tapes_info(std::span<TapeInfo> tapes);
 
     static std::vector<std::int32_t> read_tape(ITape& input, std::size_t n);
 
@@ -37,12 +43,13 @@ class TapeSorter {
 
     std::size_t get_elements_in_block() const noexcept;
 
-    static std::filesystem::path get_unique_path_in_tmp_dir() noexcept;
+    std::filesystem::path get_unique_path_in_tmp_dir() noexcept;
 
-    static std::size_t get_unique_index_in_tmp_dir() noexcept;
+    std::size_t get_unique_index_in_tmp_dir() noexcept;
 
-    static void reset_unique_index_in_tmp_dir() noexcept;
+    void reset_unique_index_in_tmp_dir() noexcept;
 
+    std::size_t unique_index_in_tmp_dir_ = 0;
     Config config_;
 };
 
