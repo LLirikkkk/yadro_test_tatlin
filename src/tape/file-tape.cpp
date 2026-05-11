@@ -137,10 +137,6 @@ void FileTape::create_empty_tape(std::string_view path, const std::streamoff siz
         cleanup_failed_creation(path);
         throw;
     }
-
-    file_.flush();
-    seek_read_position(0, std::ios_base::beg);
-    seek_write_position(0, std::ios_base::beg);
 }
 
 void FileTape::fill_tape(const std::streamoff size_bytes) {
