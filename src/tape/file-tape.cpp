@@ -2,8 +2,10 @@
 
 #include "exceptions/exceptions.h"
 
+#include <array>
 #include <filesystem>
 #include <format>
+#include <limits>
 
 namespace tape {
 
@@ -13,11 +15,7 @@ FileTape::FileTape(std::string_view path)
         throw TapeException(std::format("Could not open file: {}", path));
     }
 
-    file_.clear();
-    file_.seekg(0, std::ios_base::end);
-    if (file_.fail()) {
-        throw TapeException(std::format("Could not read file: {}", path));
-    }
+    seek_read_position(0, std::ios_base::end);
 
     size_bytes_ = file_.tellg();
     if (size_bytes_ == -1) {
@@ -29,17 +27,21 @@ FileTape::FileTape(std::string_view path)
     }
 }
 
-std::int32_t FileTape::read() {
-    file_.clear();
+FileTape::FileTape(std::string_view path, const std::size_t number_of_elements) {
+    if (number_of_elements > std::numeric_limits<std::streamoff>::max() / ELEMENT_SIZE) {
+        throw TapeException("Number of elements exceeded maximum possible size of tape");
+    }
 
+    size_bytes_ = static_cast<std::streamoff>(number_of_elements) * ELEMENT_SIZE;
+    create_empty_tape(path, size_bytes_);
+}
+
+std::int32_t FileTape::read() {
     if (is_end()) {
         throw TapeException("Could not read right bound of tape");
     }
 
-    file_.seekg(offset_bytes_, std::ios_base::beg);
-    if (file_.fail()) {
-        throw TapeException(std::format("Could not read tape"));
-    }
+    seek_read_position(offset_bytes_, std::ios_base::beg);
 
     std::int32_t read = 0;
     file_.read(reinterpret_cast<char*>(&read), sizeof(read));
@@ -51,16 +53,11 @@ std::int32_t FileTape::read() {
 }
 
 void FileTape::write(const std::int32_t value) {
-    file_.clear();
-
     if (is_end()) {
         throw TapeException(std::format("Could not write right bound of tape"));
     }
 
-    file_.seekp(offset_bytes_, std::ios_base::beg);
-    if (file_.fail()) {
-        throw TapeException(std::format("Could not write tape"));
-    }
+    seek_write_position(offset_bytes_, std::ios_base::beg);
 
     file_.write(reinterpret_cast<const char*>(&value), sizeof(value));
     if (file_.fail()) {
@@ -90,6 +87,66 @@ bool FileTape::is_begin() const noexcept {
 
 bool FileTape::is_end() const noexcept {
     return offset_bytes_ == size_bytes_;
+}
+
+void FileTape::seek_read_position(const std::streamoff offset, std::ios_base::seekdir seekdir) {
+    file_.clear();
+    file_.seekg(offset, seekdir);
+    if (file_.fail()) {
+        throw TapeException(std::format("Could not seek read position"));
+    }
+}
+
+void FileTape::seek_write_position(const std::streamoff offset, std::ios_base::seekdir seekdir) {
+    file_.clear();
+    file_.seekp(offset, seekdir);
+    if (file_.fail()) {
+        throw TapeException(std::format("Could not seek write position"));
+    }
+}
+
+void FileTape::create_empty_tape(std::string_view path, const std::streamoff size_bytes) {
+    try {
+        file_ = std::fstream(
+            std::filesystem::path(path),
+            std::ios_base::in | std::ios_base::out | std::ios_base::binary | std::ios_base::trunc
+        );
+        if (file_.fail()) {
+            throw TapeException(std::format("Could not create file: {}", path));
+        }
+
+        fill_tape(size_bytes);
+    } catch (...) {
+        cleanup_failed_creation(path);
+        throw;
+    }
+
+    file_.flush();
+    seek_read_position(0, std::ios_base::beg);
+    seek_write_position(0, std::ios_base::beg);
+}
+
+void FileTape::fill_tape(const std::streamoff size_bytes) {
+    static constexpr std::size_t BUFFER_SIZE = 4096;
+    constexpr std::array<char, BUFFER_SIZE> zeros{};
+
+    std::streamoff remaining = size_bytes;
+    while (remaining > 0) {
+        const auto block = std::min(remaining, static_cast<std::streamoff>(BUFFER_SIZE));
+        file_.write(zeros.data(), block);
+        if (file_.fail()) {
+            throw TapeException("Could not write tape");
+        }
+
+        remaining -= block;
+    }
+}
+
+void FileTape::cleanup_failed_creation(std::string_view path) noexcept {
+    file_.close();
+
+    std::error_code ec;
+    std::filesystem::remove(path, ec);
 }
 
 } // namespace tape
