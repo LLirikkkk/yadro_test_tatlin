@@ -20,6 +20,7 @@ Checks: '
   -cppcoreguidelines-special-member-functions,
   -cppcoreguidelines-avoid-capturing-lambda-coroutines,
   -cppcoreguidelines-avoid-reference-coroutine-parameters,
+  -cppcoreguidelines-pro-bounds-avoid-unchecked-container-access,
   google-default-arguments,
   google-explicit-constructor,
   google-readability-avoid-underscore-in-googletest-name,
