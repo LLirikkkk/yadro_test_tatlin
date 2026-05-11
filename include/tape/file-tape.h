@@ -2,7 +2,6 @@
 
 #include "tape.h"
 
-#include <chrono>
 #include <fstream>
 
 namespace tape {
@@ -12,15 +11,17 @@ class FileTape : public ITape {
     static constexpr std::streamoff ELEMENT_SIZE = sizeof(std::int32_t);
 
   public:
-    struct Config {
-        std::chrono::milliseconds read_delay_;
-        std::chrono::milliseconds write_delay_;
-        std::chrono::milliseconds move_delay_;
-    };
+    explicit FileTape(std::string_view path, const Config& config);
 
-    explicit FileTape(std::string_view path, const Config &config);
+    FileTape(std::string_view path, std::size_t number_of_elements, const Config& config);
 
-    FileTape(std::string_view path, std::size_t number_of_elements, const Config &config);
+    FileTape(const FileTape&) = delete;
+
+    FileTape& operator=(const FileTape&) = delete;
+
+    FileTape(FileTape&&) noexcept = default;
+
+    FileTape& operator=(FileTape&&) noexcept = default;
 
     std::int32_t read() override;
 
@@ -34,13 +35,20 @@ class FileTape : public ITape {
 
     bool is_end() const noexcept override;
 
+    void rewind_to_begin() override;
+
+    void rewind_to_end() override;
+
+    std::size_t size() const noexcept override;
+
+    bool empty() const noexcept override;
+
     ~FileTape() override = default;
 
   private:
     std::streamoff offset_bytes_ = 0;
     std::streamoff size_bytes_ = 0;
     std::fstream file_;
-    Config config_;
 
     std::streamoff get_file_size(std::string_view path);
 
