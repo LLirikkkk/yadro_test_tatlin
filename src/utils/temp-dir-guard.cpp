@@ -1,8 +1,10 @@
 #include "utils/temp-dir-guard.h"
 
-#include <utility>
-
 #include "exceptions/exceptions.h"
+
+#include <format>
+#include <iostream>
+#include <utility>
 
 namespace tape::detail {
 
@@ -22,11 +24,17 @@ void TempDirGuard::remove_file(const std::filesystem::path& path) const {
 
     std::error_code ec;
     std::filesystem::remove(path, ec);
+    if (ec) {
+        std::cerr << std::format("Could not remove file: {}, because: {}", path.string(), ec.message()) << std::endl;
+    }
 }
 
 TempDirGuard::~TempDirGuard() {
     std::error_code ec;
     std::filesystem::remove_all(dir_, ec);
+    if (ec) {
+        std::cerr << std::format("Could not remove directory: dir, because: {}", ec.message()) << std::endl;
+    }
 }
 
 std::filesystem::path TempDirGuard::get_unique_path_in_tmp_dir() {
