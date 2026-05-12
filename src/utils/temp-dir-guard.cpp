@@ -38,7 +38,7 @@ TempDirGuard::~TempDirGuard() {
 }
 
 std::filesystem::path TempDirGuard::get_unique_path_in_tmp_dir() {
-    return std::filesystem::path(dir_).append(std::to_string(get_unique_index_in_tmp_dir()));
+    return dir_ / std::to_string(get_unique_index_in_tmp_dir());
 }
 
 std::size_t TempDirGuard::get_unique_index_in_tmp_dir() noexcept {
