@@ -8,12 +8,6 @@ target_sources(
 
         PRIVATE
         main.cpp
-        config-loader.cpp
-
-        PUBLIC
-        FILE_SET HEADERS
-        FILES
-        config-loader.h
 )
 
 target_link_libraries(

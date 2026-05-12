@@ -1,4 +1,4 @@
-#include "config-loader.h"
+#include "../include/config/config-loader.h"
 #include "sort/tape-sorter.h"
 #include "tape/file-tape.h"
 
@@ -20,7 +20,7 @@ int main(int argc, char* const* argv) {
             return 1;
         }
 
-        utils::ConfigLoader loader;
+        tape::ConfigLoader loader;
         loader.read_config("config.txt");
 
         tape::FileTape input_tape(argv[1], loader.get_tape_config());

@@ -1,4 +1,4 @@
-#include "config-loader.h"
+#include "../../include/config/config-loader.h"
 
 #include <chrono>
 #include <exception>
@@ -8,7 +8,7 @@
 #include <stdexcept>
 #include <string>
 
-namespace utils {
+namespace tape {
 
 void ConfigLoader::read_config(const std::filesystem::path& config_path) {
     std::error_code ec;
@@ -43,11 +43,11 @@ void ConfigLoader::read_config(const std::filesystem::path& config_path) {
     }
 }
 
-const tape::ITape::Config& ConfigLoader::get_tape_config() const noexcept {
+const ITape::Config& ConfigLoader::get_tape_config() const noexcept {
     return tape_config_;
 }
 
-const tape::TapeSorter::Config& ConfigLoader::get_tape_sorter_config() const noexcept {
+const TapeSorter::Config& ConfigLoader::get_tape_sorter_config() const noexcept {
     return tape_sorter_config_;
 }
 

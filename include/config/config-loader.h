@@ -10,7 +10,7 @@
 #include <unordered_set>
 #include <utility>
 
-namespace utils {
+namespace tape {
 
 class ConfigLoader {
   private:
@@ -21,9 +21,9 @@ class ConfigLoader {
   public:
     void read_config(const std::filesystem::path& config_path);
 
-    const tape::ITape::Config& get_tape_config() const noexcept;
+    const ITape::Config& get_tape_config() const noexcept;
 
-    const tape::TapeSorter::Config& get_tape_sorter_config() const noexcept;
+    const TapeSorter::Config& get_tape_sorter_config() const noexcept;
 
   private:
     void parse_line(
@@ -43,8 +43,8 @@ class ConfigLoader {
 
     static bool is_duplicate_key(std::string_view key, const std::unordered_set<std::string>& seen_keys);
 
-    tape::ITape::Config tape_config_;
-    tape::TapeSorter::Config tape_sorter_config_;
+    ITape::Config tape_config_;
+    TapeSorter::Config tape_sorter_config_;
 };
 
 } // namespace utils

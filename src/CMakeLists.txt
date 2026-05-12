@@ -19,6 +19,7 @@ target_sources(
         tape/tape.cpp
         utils/temp-dir-guard.cpp
         exceptions/exceptions.cpp
+        config/config-loader.cpp
 
         PUBLIC
         FILE_SET HEADERS
@@ -29,4 +30,5 @@ target_sources(
         ${PROJECT_SOURCE_DIR}/include/tape/file-tape.h
         ${PROJECT_SOURCE_DIR}/include/utils/temp-dir-guard.h
         ${PROJECT_SOURCE_DIR}/include/exceptions/exceptions.h
+        ${PROJECT_SOURCE_DIR}/include/config/config-loader.h
 )
