@@ -9,12 +9,16 @@ namespace {
 
 class FileTapeTest : public ::testing::Test {
   protected:
-    tape::test::TestDir dir_;
-    std::filesystem::path path_ = dir_.path_ / "file.bin";
-
     void write_values_to_file(const std::vector<std::int32_t>& values) const {
         tape::test::write_binary_ints(path_, values);
     }
+
+    std::vector<std::int32_t> read_values_from_file() const {
+        return tape::test::read_binary_ints(path_);
+    }
+
+    tape::test::TestDir dir_;
+    std::filesystem::path path_ = dir_.path_ / "file.bin";
 };
 
 } // namespace
@@ -53,7 +57,7 @@ TEST_F(FileTapeTest, CreateTapeWithRequestedSize) {
         EXPECT_FALSE(tape.is_end());
     }
 
-    EXPECT_EQ(read_binary_ints(path_), (std::vector<std::int32_t>{0, 0, 0}));
+    EXPECT_EQ(read_values_from_file(), (std::vector<std::int32_t>{0, 0, 0}));
 }
 
 TEST_F(FileTapeTest, CreateTapeWithRequestedSizeZero) {
@@ -148,7 +152,7 @@ TEST_F(FileTapeTest, WriteValuesToTape) {
         tape.write(3);
     }
 
-    EXPECT_EQ(read_binary_ints(path_), (std::vector<std::int32_t>{1, 2, 3}));
+    EXPECT_EQ(read_values_from_file(), (std::vector<std::int32_t>{1, 2, 3}));
 }
 
 TEST_F(FileTapeTest, OverwritesExistingValues) {
@@ -166,7 +170,7 @@ TEST_F(FileTapeTest, OverwritesExistingValues) {
         EXPECT_EQ(tape.read(), 10);
     }
 
-    EXPECT_EQ(read_binary_ints(path_), (std::vector<std::int32_t>{1, 10, 3}));
+    EXPECT_EQ(read_values_from_file(), (std::vector<std::int32_t>{1, 10, 3}));
 }
 
 TEST_F(FileTapeTest, RewindsToBeginAndEnd) {
