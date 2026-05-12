@@ -36,7 +36,7 @@ void TapeSorter::sort(ITape& input, ITape& output) {
     auto temp_dir_guard = detail::TempDirGuard("tmp");
 
     auto temp_tapes_info = get_sorted_temp_tapes(input, elements_in_block);
-    merge_sorted_temp_tapes(temp_tapes_info, output);
+    merge_temp_tapes(temp_tapes_info, output);
 }
 
 std::vector<TapeSorter::TapeInfo> TapeSorter::get_sorted_temp_tapes(ITape& input, const std::size_t elements_in_block) {
@@ -56,9 +56,9 @@ std::vector<TapeSorter::TapeInfo> TapeSorter::get_sorted_temp_tapes(ITape& input
     return temp_tapes_info;
 }
 
-void TapeSorter::merge_sorted_temp_tapes(std::vector<TapeInfo>& temp_tapes_info, ITape& output) {
+void TapeSorter::merge_temp_tapes(std::vector<TapeInfo>& temp_tapes_info, ITape& output) {
     while (temp_tapes_info.size() > 1) {
-        std::size_t merge_ways = std::min(temp_tapes_info.size(), get_elements_in_block());
+        std::size_t merge_ways = std::min({temp_tapes_info.size(), get_elements_in_block(), get_fd_limit()});
         auto merged_temp_tape_info = k_way_merge_temp_tapes(std::span(temp_tapes_info.begin(), merge_ways));
         auto removed_left_bound_it = temp_tapes_info.begin();
         auto removed_right_bound_it = temp_tapes_info.begin();
@@ -152,6 +152,19 @@ std::size_t TapeSorter::get_unique_index_in_tmp_dir() noexcept {
 
 void TapeSorter::reset_unique_index_in_tmp_dir() noexcept {
     unique_index_in_tmp_dir_ = 0;
+}
+
+std::size_t TapeSorter::get_fd_limit() noexcept {
+#ifdef __unix__
+    struct rlimit rl;
+    if (getrlimit(RLIMIT_NOFILE, &rl) == 0) {
+        return rl.rlim_cur;
+    }
+
+    return FOPEN_MAX;
+#elif defined(_WIN32) || defined(_WIN64)
+    return _getmaxstdio();
+#endif
 }
 
 } // namespace tape

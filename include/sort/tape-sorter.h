@@ -8,6 +8,12 @@
 #include <span>
 #include <vector>
 
+#ifdef __unix__
+#include <sys/resource.h>
+#elif defined(_WIN32) || defined(_WIN64)
+#include <stdio.h>
+#endif
+
 namespace tape {
 
 class TapeSorter {
@@ -31,7 +37,7 @@ class TapeSorter {
   private:
     std::vector<TapeInfo> get_sorted_temp_tapes(ITape& input, std::size_t elements_in_block);
 
-    void merge_sorted_temp_tapes(std::vector<TapeInfo>& temp_tapes_info, ITape& output);
+    void merge_temp_tapes(std::vector<TapeInfo>& temp_tapes_info, ITape& output);
 
     TapeInfo k_way_merge_temp_tapes(std::span<TapeInfo> temp_tapes);
 
@@ -48,6 +54,8 @@ class TapeSorter {
     std::size_t get_unique_index_in_tmp_dir() noexcept;
 
     void reset_unique_index_in_tmp_dir() noexcept;
+
+    static std::size_t get_fd_limit() noexcept;
 
     std::size_t unique_index_in_tmp_dir_ = 0;
     Config config_;
