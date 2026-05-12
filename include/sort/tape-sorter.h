@@ -15,7 +15,7 @@ class TapeSorter {
     static constexpr std::size_t ELEMENT_SIZE = sizeof(std::int32_t);
 
     struct TapeInfo {
-        std::filesystem::path path_;
+        std::string path_;
         ITape::Config config_;
     };
 
@@ -33,7 +33,7 @@ class TapeSorter {
 
     void merge_sorted_temp_tapes(std::vector<TapeInfo>& temp_tapes_info, ITape& output);
 
-    TapeInfo merge_sorted_temp_tapes_impl(std::span<TapeInfo> temp_tapes);
+    TapeInfo k_way_merge_temp_tapes(std::span<TapeInfo> temp_tapes);
 
     static std::vector<FileTape> get_tapes_from_tapes_info(std::span<TapeInfo> tapes);
 
@@ -43,7 +43,7 @@ class TapeSorter {
 
     std::size_t get_elements_in_block() const noexcept;
 
-    std::filesystem::path get_unique_path_in_tmp_dir() noexcept;
+    std::string get_unique_path_in_tmp_dir() noexcept;
 
     std::size_t get_unique_index_in_tmp_dir() noexcept;
 

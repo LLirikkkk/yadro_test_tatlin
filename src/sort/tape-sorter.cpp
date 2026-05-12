@@ -35,8 +35,8 @@ void TapeSorter::sort(ITape& input, ITape& output) {
     reset_unique_index_in_tmp_dir();
     auto temp_dir_guard = detail::TempDirGuard("tmp");
 
-    auto temp_tapes = get_sorted_temp_tapes(input, elements_in_block);
-    merge_sorted_temp_tapes(temp_tapes, output);
+    auto temp_tapes_info = get_sorted_temp_tapes(input, elements_in_block);
+    merge_sorted_temp_tapes(temp_tapes_info, output);
 }
 
 std::vector<TapeSorter::TapeInfo> TapeSorter::get_sorted_temp_tapes(ITape& input, const std::size_t elements_in_block) {
@@ -47,7 +47,7 @@ std::vector<TapeSorter::TapeInfo> TapeSorter::get_sorted_temp_tapes(ITape& input
         std::ranges::sort(block.begin(), block.end(), std::less{});
 
         auto path = get_unique_path_in_tmp_dir();
-        FileTape temp_tape(path.string(), block.size(), input.get_config());
+        FileTape temp_tape(path, block.size(), input.get_config());
 
         write_tape(temp_tape, block);
         temp_tapes_info.emplace_back(path, input.get_config());
@@ -59,15 +59,15 @@ std::vector<TapeSorter::TapeInfo> TapeSorter::get_sorted_temp_tapes(ITape& input
 void TapeSorter::merge_sorted_temp_tapes(std::vector<TapeInfo>& temp_tapes_info, ITape& output) {
     while (temp_tapes_info.size() > 1) {
         std::size_t merge_ways = std::min(temp_tapes_info.size(), get_elements_in_block());
-        auto merged_temp_tape = merge_sorted_temp_tapes_impl(std::span(temp_tapes_info.begin(), merge_ways));
+        auto merged_temp_tape_info = k_way_merge_temp_tapes(std::span(temp_tapes_info.begin(), merge_ways));
         auto removed_left_bound_it = temp_tapes_info.begin();
         auto removed_right_bound_it = temp_tapes_info.begin();
         std::advance(removed_right_bound_it, merge_ways);
         temp_tapes_info.erase(removed_left_bound_it, removed_right_bound_it);
-        temp_tapes_info.push_back(std::move(merged_temp_tape));
+        temp_tapes_info.push_back(std::move(merged_temp_tape_info));
     }
 
-    FileTape result(temp_tapes_info.front().path_.string(), temp_tapes_info.front().config_);
+    FileTape result(temp_tapes_info.front().path_, temp_tapes_info.front().config_);
     while (!result.is_end()) {
         output.write(result.read());
         output.move_right();
@@ -75,7 +75,7 @@ void TapeSorter::merge_sorted_temp_tapes(std::vector<TapeInfo>& temp_tapes_info,
     }
 }
 
-TapeSorter::TapeInfo TapeSorter::merge_sorted_temp_tapes_impl(std::span<TapeInfo> temp_tapes_info) {
+TapeSorter::TapeInfo TapeSorter::k_way_merge_temp_tapes(std::span<TapeInfo> temp_tapes_info) {
     using TapeValue = std::int32_t;
     using TapeIndex = std::size_t;
 
@@ -94,7 +94,7 @@ TapeSorter::TapeInfo TapeSorter::merge_sorted_temp_tapes_impl(std::span<TapeInfo
     }
 
     auto merged_temp_tape_path = get_unique_path_in_tmp_dir();
-    FileTape merged_temp_tape(merged_temp_tape_path.string(), merged_size, temp_tapes.front().get_config());
+    FileTape merged_temp_tape(merged_temp_tape_path, merged_size, temp_tapes.front().get_config());
     while (!pq.empty()) {
         auto [tape_value, tape_index] = pq.top();
         pq.pop();
@@ -116,7 +116,7 @@ std::vector<FileTape> TapeSorter::get_tapes_from_tapes_info(std::span<TapeInfo> 
     std::vector<FileTape> temp_tapes;
     temp_tapes.reserve(tapes.size());
     for (auto& [path, config] : tapes) {
-        temp_tapes.emplace_back(path.string(), config);
+        temp_tapes.emplace_back(path, config);
     }
 
     return temp_tapes;
@@ -138,8 +138,8 @@ void TapeSorter::write_tape(ITape& output, std::span<std::int32_t> buff) {
     }
 }
 
-std::filesystem::path TapeSorter::get_unique_path_in_tmp_dir() noexcept {
-    return std::filesystem::path("tmp").append(std::to_string(get_unique_index_in_tmp_dir()));
+std::string TapeSorter::get_unique_path_in_tmp_dir() noexcept {
+    return std::filesystem::path("tmp").append(std::to_string(get_unique_index_in_tmp_dir())).string();
 }
 
 std::size_t TapeSorter::get_elements_in_block() const noexcept {
