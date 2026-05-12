@@ -11,17 +11,17 @@
 
 namespace tape {
 
-FileTape::FileTape(std::string_view path, const Config& config)
+FileTape::FileTape(const std::filesystem::path& path, const Config& config)
     : ITape(config)
-    , file_(std::filesystem::path(path), std::ios_base::in | std::ios_base::out | std::ios_base::binary) {
+    , file_(path, std::ios_base::in | std::ios_base::out | std::ios_base::binary) {
     if (file_.fail()) {
-        throw TapeException(std::format("Could not open file: {}", path));
+        throw TapeException(std::format("Could not open file: {}", path.string()));
     }
 
     size_bytes_ = get_file_size(path);
 }
 
-FileTape::FileTape(std::string_view path, const std::size_t number_of_elements, const Config& config)
+FileTape::FileTape(const std::filesystem::path& path, const std::size_t number_of_elements, const Config& config)
     : ITape(config) {
     if (number_of_elements > std::numeric_limits<std::streamoff>::max() / ELEMENT_SIZE) {
         throw TapeException("Number of elements exceeded maximum possible size of tape");
@@ -110,16 +110,16 @@ bool FileTape::empty() const noexcept {
     return size() == 0;
 }
 
-std::streamoff FileTape::get_file_size(std::string_view path) {
+std::streamoff FileTape::get_file_size(const std::filesystem::path& path) {
     seek_read_position(0, std::ios_base::end);
 
     const std::streamoff size_bytes = file_.tellg();
     if (size_bytes == -1) {
-        throw TapeException(std::format("Could not read file: {}", path));
+        throw TapeException(std::format("Could not read file: {}", path.string()));
     }
 
     if (size_bytes % ELEMENT_SIZE != 0) {
-        throw TapeException(std::format("Invalid data in file: {}", path));
+        throw TapeException(std::format("Invalid data in file: {}", path.string()));
     }
 
     return size_bytes;
@@ -141,14 +141,14 @@ void FileTape::seek_write_position(const std::streamoff offset, std::ios_base::s
     }
 }
 
-void FileTape::create_empty_tape(std::string_view path, const std::streamoff size_bytes) {
+void FileTape::create_empty_tape(const std::filesystem::path& path, const std::streamoff size_bytes) {
     try {
         file_ = std::fstream(
-            std::filesystem::path(path),
+            path,
             std::ios_base::in | std::ios_base::out | std::ios_base::binary | std::ios_base::trunc
         );
         if (file_.fail()) {
-            throw TapeException(std::format("Could not create file: {}", path));
+            throw TapeException(std::format("Could not create file: {}", path.string()));
         }
 
         fill_tape(size_bytes);
@@ -174,13 +174,13 @@ void FileTape::fill_tape(const std::streamoff size_bytes) {
     }
 }
 
-void FileTape::cleanup_failed_creation(std::string_view path) noexcept {
+void FileTape::cleanup_failed_creation(const std::filesystem::path& path) noexcept {
     file_.close();
 
     std::error_code ec;
     std::filesystem::remove(path, ec);
     if (ec) {
-        std::cerr << std::format("Could not remove file: {}, because: {}", path, ec.message());
+        std::cerr << std::format("Could not remove file: {}, because: {}", path.string(), ec.message());
     }
 }
 

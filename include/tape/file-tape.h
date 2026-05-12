@@ -4,6 +4,7 @@
 
 #include <fstream>
 #include <string_view>
+#include <filesystem>
 
 namespace tape {
 
@@ -12,9 +13,9 @@ class FileTape : public ITape {
     static constexpr std::streamoff ELEMENT_SIZE = sizeof(std::int32_t);
 
   public:
-    explicit FileTape(std::string_view path, const Config& config);
+    explicit FileTape(const std::filesystem::path& path, const Config& config);
 
-    FileTape(std::string_view path, std::size_t number_of_elements, const Config& config);
+    FileTape(const std::filesystem::path& path, std::size_t number_of_elements, const Config& config);
 
     FileTape(const FileTape&) = delete;
 
@@ -51,17 +52,17 @@ class FileTape : public ITape {
     std::streamoff size_bytes_ = 0;
     std::fstream file_;
 
-    std::streamoff get_file_size(std::string_view path);
+    std::streamoff get_file_size(const std::filesystem::path& path);
 
     void seek_read_position(std::streamoff offset, std::ios_base::seekdir seekdir);
 
     void seek_write_position(std::streamoff offset, std::ios_base::seekdir seekdir);
 
-    void create_empty_tape(std::string_view path, std::streamoff size_bytes);
+    void create_empty_tape(const std::filesystem::path& path, std::streamoff size_bytes);
 
     void fill_tape(std::streamoff size_bytes);
 
-    void cleanup_failed_creation(std::string_view path) noexcept;
+    void cleanup_failed_creation(const std::filesystem::path& path) noexcept;
 };
 
 } // namespace tape
