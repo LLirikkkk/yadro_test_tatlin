@@ -9,7 +9,14 @@ target_sources(
         tape_tests
 
         PRIVATE
+        file-tape-test.cpp
         tape-sorter-test.cpp
+        utils/utils.cpp
+
+        PUBLIC
+        FILE_SET HEADERS
+        FILES
+        utils/utils.h
 )
 
 find_package(GTest REQUIRED)
