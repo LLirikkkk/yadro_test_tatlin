@@ -57,7 +57,7 @@ void ConfigLoader::parse_line(
     const std::filesystem::path& config_path
 ) {
     if (line.length() > MAX_CONFIG_LINE_SIZE) {
-        throw std::runtime_error(std::format("Line in config file is too large: {}", config_path.string()));
+        throw std::runtime_error(std::format("Line is too large in config file: {}", config_path.string()));
     }
 
     auto [key, value] = parse_key_and_value(line, seen_keys, config_path);
@@ -127,7 +127,7 @@ ConfigLoader::parse_value(std::string_view value_sv, std::string_view key, const
 
     if (parsed != value_sv.length()) {
         throw std::runtime_error(
-            std::format("Invalid value for key: {}, in config file {}", key, config_path.string())
+            std::format("Invalid value for key: {}, in config file: {}", key, config_path.string())
         );
     }
 
