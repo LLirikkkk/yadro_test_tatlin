@@ -11,6 +11,7 @@ target_sources(
         PRIVATE
         file-tape-test.cpp
         tape-sorter-test.cpp
+        config-loader-test.cpp
         utils/utils.cpp
 
         PUBLIC
