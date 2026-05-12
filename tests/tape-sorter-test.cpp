@@ -5,6 +5,10 @@
 #include "tape/file-tape.h"
 #include "utils/utils.h"
 
+#include <algorithm>
+#include <limits>
+#include <random>
+
 namespace {
 
 class TapeSorterTest : public ::testing::Test {
@@ -128,6 +132,30 @@ TEST_F(TapeSorterTest, ThrowsWhenMemoryLimitTooSmall) {
     TapeSorter sorter(TapeSorter::Config{.memory_limit_ = sizeof(std::int32_t)});
 
     EXPECT_THROW(sorter.sort(input_tape, output_tape), TapeException);
+}
+
+TEST_F(TapeSorterTest, SortsLargeRandomDataset) {
+    constexpr std::size_t values_count = 10'000;
+    constexpr std::size_t memory_limit = 2 * sizeof(std::int32_t);
+
+    std::mt19937 rng(123);
+    std::uniform_int_distribution<std::int32_t> dist(
+        std::numeric_limits<std::int32_t>::min(),
+        std::numeric_limits<std::int32_t>::max()
+    );
+
+    std::vector<std::int32_t> values;
+    values.reserve(values_count);
+    for (std::size_t i = 0; i < values_count; ++i) {
+        values.push_back(dist(rng));
+    }
+
+    auto expected = values;
+    std::ranges::sort(expected);
+
+    run_sort(values, memory_limit);
+
+    EXPECT_EQ(read_output(), expected);
 }
 
 } // namespace tape::test
