@@ -5,6 +5,7 @@
 #include <array>
 #include <filesystem>
 #include <format>
+#include <iostream>
 #include <limits>
 #include <thread>
 
@@ -178,6 +179,9 @@ void FileTape::cleanup_failed_creation(std::string_view path) noexcept {
 
     std::error_code ec;
     std::filesystem::remove(path, ec);
+    if (ec) {
+        std::cerr << std::format("Could not remove file: {}, because: {}", path, ec.message());
+    }
 }
 
 } // namespace tape
