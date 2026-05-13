@@ -9,19 +9,14 @@
 #include <string>
 
 int main(int argc, char* const* argv) {
-    if (argc != 3) {
-        std::cerr << "Arguments <input file> <output file> required" << std::endl;
+    if (argc != 4) {
+        std::cerr << "Arguments <input file> <output file> <config file> are required" << std::endl;
         return 1;
     }
 
     try {
-        if (!std::filesystem::exists("config.txt")) {
-            std::cerr << "Could not find config.txt" << std::endl;
-            return 1;
-        }
-
         tape::ConfigLoader loader;
-        loader.read_config("config.txt");
+        loader.read_config(argv[3]);
 
         tape::FileTape input_tape(argv[1], loader.get_tape_config());
         tape::FileTape output_tape(argv[2], input_tape.size(), loader.get_tape_config());
