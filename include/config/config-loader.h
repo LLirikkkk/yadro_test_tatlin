@@ -12,6 +12,12 @@
 
 namespace tape {
 
+/**
+ * @brief Loads configuration from a text file.
+ *
+ * Reads a file with key=value pairs, validates correctness and converts values into <code>ITape::Config</code> and
+ * <code>TapeSorter::Config</code> structures.
+ */
 class ConfigLoader {
   private:
     static constexpr std::size_t MAX_CONFIG_LINE_SIZE = 1024;
@@ -19,10 +25,23 @@ class ConfigLoader {
     static constexpr std::size_t REQUIRED_KEYS_COUNT = 5;
 
   public:
+    /**
+     * @brief Parses the configuration file.
+     * @param config_path Path to the configuration file.
+     * @throws std::runtime_error If the file does not exist, is too large or is in invalid format.
+     */
     void read_config(const std::filesystem::path& config_path);
 
+    /**
+     * @brief Returns the parsed tape configuration.
+     * @return Constant reference to the ITape::Config structure.
+     */
     const ITape::Config& get_tape_config() const noexcept;
 
+    /**
+     * @brief Returns the parsed sorter configuration.
+     * @return Constant reference to the TapeSorter::Config structure.
+     */
     const TapeSorter::Config& get_tape_sorter_config() const noexcept;
 
   private:
@@ -47,4 +66,4 @@ class ConfigLoader {
     TapeSorter::Config tape_sorter_config_;
 };
 
-} // namespace utils
+} // namespace tape
