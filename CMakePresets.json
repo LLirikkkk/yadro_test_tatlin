@@ -80,5 +80,31 @@
         "RelWithDebInfo"
       ]
     }
+  ],
+  "buildPresets": [
+    {
+      "name": "Release",
+      "configurePreset": "Release"
+    },
+    {
+      "name": "Debug",
+      "configurePreset": "Debug"
+    },
+    {
+      "name": "RelWithDebInfo",
+      "configurePreset": "RelWithDebInfo"
+    },
+    {
+      "name": "Test-Release",
+      "configurePreset": "Test-Release"
+    },
+    {
+      "name": "Test-Debug",
+      "configurePreset": "Test-Debug"
+    },
+    {
+      "name": "Test-RelWithDebInfo",
+      "configurePreset": "Test-RelWithDebInfo"
+    }
   ]
 }
